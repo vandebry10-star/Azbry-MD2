@@ -1,0 +1,53 @@
+name: Extract ZIP to repo
+on:
+  push:
+    paths:
+      - 'Azbry-MD-main.zip'    # akan jalan otomatis kalau file ini diupload atau diubah
+  workflow_dispatch:            # bisa dijalankan manual dari tab Actions
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set ZIP path
+        run: echo "ZIP=Azbry-MD-main.zip" >> $GITHUB_ENV
+
+      - name: Pastikan file ZIP ada
+        run: |
+          if [ ! -f "$ZIP" ]; then
+            echo "::error::File $ZIP tidak ditemukan di root repo."; exit 1;
+          fi
+
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
+
+      - name: Ekstrak file ZIP
+        run: |
+          mkdir -p extracted
+          unzip -o "$ZIP" -d extracted
+
+          shopt -s dotglob
+          first=$(ls -1 extracted | head -1 || true)
+          if [ -n "$first" ] && [ -d "extracted/$first" ] && [ "$(ls -1 extracted | wc -l)" -eq 1 ]; then
+            mv -f extracted/$first/* .
+          else
+            mv -f extracted/* .
+          fi
+
+          rm -rf extracted "$ZIP"
+
+      - name: Commit & Push hasil ekstrak
+        run: |
+          if git diff --quiet; then
+            echo "Tidak ada perubahan untuk dikomit."; exit 0;
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "✅ Auto-extracted Azbry-MD-main.zip via GitHub Actions"
+          git push
