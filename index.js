@@ -132,7 +132,7 @@
       <div class="card">
         <p class="muted">Dokumentasi fitur, changelog, dan integrasi ekosistem Azbry. Ini adalah halaman yang paling disarankan untuk dikunjungi terlebih dahulu.</p>
         <div class="stack">
-          <a class="btn" href="https://azbry-system.web.app" target="_blank" rel="noopener"><span class="icon">🚀</span> Buka Azbry Sistem</a>
+          <a class="btn" href="https://github.com/vandebry10-star/Azbry-MD2" target="_blank" rel="noopener"><span class="icon">🚀</span> Buka Azbry Sistem</a>
           <a class="btn ghost" href="#github"><span class="icon">📦</span> Lihat Kode di GitHub</a>
         </div>
       </div>
@@ -143,7 +143,7 @@
       <h3 class="section-title">GitHub</h3>
       <div class="card">
         <p class="muted">Repositori publik terkait Azbry-MD, eksperimen AI, dan utilitas automasi.</p>
-        <a class="btn" href="https://github.com/FebryWesker" target="_blank" rel="noopener"><span class="icon">🌐</span> Kunjungi GitHub</a>
+        <a class="btn" href="https://github.com/vandebry10-star" target="_blank" rel="noopener"><span class="icon">🌐</span> Kunjungi GitHub</a>
       </div>
     </section>
 
