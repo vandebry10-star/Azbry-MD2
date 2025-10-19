@@ -1,53 +1,99 @@
 name: Extract ZIP to repo
+
 on:
   push:
     paths:
-      - 'Azbry-MD-main.zip'    # akan jalan otomatis kalau file ini diupload atau diubah
-  workflow_dispatch:            # bisa dijalankan manual dari tab Actions
+      - 'Azbry-MD-main.zip'      # otomatis kalau ZIP ini berubah
+  workflow_dispatch:             # bisa run manual
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   unzip:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Debug - list repo root
+        run: |
+          echo "== PWD ==" && pwd
+          echo "== LS -lah ==" && ls -lah
+          echo "== GIT STATUS ==" && git status
+
+      - name: Ensure unzip & git-lfs
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip git-lfs
+          git lfs install
+          git lfs fetch || true
+          git lfs pull || true
 
       - name: Set ZIP path
-        run: echo "ZIP=Azbry-MD-main.zip" >> $GITHUB_ENV
+        run: echo "ZIP=Azbry-MD-main.zip" >> "$GITHUB_ENV"
 
-      - name: Pastikan file ZIP ada
+      - name: Verify ZIP exists
         run: |
           if [ ! -f "$ZIP" ]; then
-            echo "::error::File $ZIP tidak ditemukan di root repo."; exit 1;
+            echo "::error file=$ZIP::File ZIP tidak ditemukan di root repo"; 
+            echo "Isi direktori saat ini:"; ls -lah
+            exit 1
           fi
+          echo "Found $ZIP (size: $(du -h "$ZIP" | cut -f1))"
 
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
-
-      - name: Ekstrak file ZIP
+      - name: Unzip with flatten
         run: |
           mkdir -p extracted
           unzip -o "$ZIP" -d extracted
+          echo "== After unzip ==" && ls -lah extracted || true
 
           shopt -s dotglob
           first=$(ls -1 extracted | head -1 || true)
-          if [ -n "$first" ] && [ -d "extracted/$first" ] && [ "$(ls -1 extracted | wc -l)" -eq 1 ]; then
+          count=$(ls -1 extracted | wc -l || echo 0)
+          if [ -n "$first" ] && [ -d "extracted/$first" ] && [ "$count" -eq 1 ]; then
+            echo "Single top-level folder detected: $first -> flattening to repo root"
             mv -f extracted/$first/* .
           else
+            echo "Multiple items -> moving all to repo root"
             mv -f extracted/* .
           fi
 
+          # hapus zip & folder kerja
           rm -rf extracted "$ZIP"
 
-      - name: Commit & Push hasil ekstrak
+      - name: Debug - git diff summary
         run: |
-          if git diff --quiet; then
-            echo "Tidak ada perubahan untuk dikomit."; exit 0;
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          echo "== GIT DIFF --NAME-STATUS =="
           git add -A
-          git commit -m "✅ Auto-extracted Azbry-MD-main.zip via GitHub Actions"
-          git push
+          git diff --staged --name-status || true
+
+      - name: Commit to main (try)
+        id: commitpush
+        continue-on-error: true
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Auto-unzip Azbry-MD-main.zip via GitHub Actions"
+          git push origin HEAD:main
+
+      - name: Fallback via PR (if main protected)
+        if: steps.commitpush.outcome == 'failure'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Auto-unzip Azbry-MD-main.zip via GitHub Actions"
+          title: "Auto-unzip: Azbry-MD-main.zip"
+          body: "Branch main dilindungi. Workflow membuat PR ini secara otomatis."
+          branch: unzip-auto/${{ github.run_id }}
+          delete-branch: true
