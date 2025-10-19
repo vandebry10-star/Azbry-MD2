@@ -1,0 +1,51 @@
+name: Extract ZIP to repo
+on:
+  push:
+    paths:
+      - 'Azbry-MD.zip'      # auto jalan kalau ZIP-nya berubah
+  workflow_dispatch:        # bisa dijalankan manual dari tab Actions
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set ZIP path
+        run: echo "ZIP=Azbry-MD.zip" >> $GITHUB_ENV
+
+      - name: Ensure ZIP exists
+        run: |
+          if [ ! -f "$ZIP" ]; then
+            echo "::error::Zip $ZIP not found"; exit 1;
+          fi
+
+      - name: Unzip
+        run: |
+          mkdir -p extracted
+          unzip -o "$ZIP" -d extracted
+
+          shopt -s dotglob
+          # Kalau ZIP berisi satu folder di dalamnya, pindahkan isinya ke root repo
+          first=$(ls -1 extracted | head -1 || true)
+          if [ -n "$first" ] && [ -d "extracted/$first" ] && [ "$(ls -1 extracted | wc -l)" -eq 1 ]; then
+            mv -f extracted/$first/* .
+          else
+            mv -f extracted/* .
+          fi
+
+          rm -rf extracted "$ZIP"
+
+      - name: Commit & Push
+        run: |
+          if git diff --quiet; then
+            echo "No changes"; exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Unzip Azbry-MD.zip via GitHub Actions"
+          git push
