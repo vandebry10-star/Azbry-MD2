@@ -1,99 +1,58 @@
-name: Extract ZIP to repo
+name: Auto move JS files to /plugins
 
 on:
   push:
-    paths:
-      - 'plugins.zip'      # otomatis kalau ZIP ini berubah
-  workflow_dispatch:             # bisa run manual
+    branches: [ main ]        # bisa ubah ke branch lain
+  workflow_dispatch:          # bisa run manual
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  unzip:
+  move-js:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
     steps:
-      - name: Checkout (full history)
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Debug - list repo root
+      - name: Move all .js files to /plugins
         run: |
-          echo "== PWD ==" && pwd
-          echo "== LS -lah ==" && ls -lah
-          echo "== GIT STATUS ==" && git status
+          mkdir -p plugins
 
-      - name: Ensure unzip & git-lfs
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip git-lfs
-          git lfs install
-          git lfs fetch || true
-          git lfs pull || true
+          echo "== Before move =="
+          ls -lah
 
-      - name: Set ZIP path
-        run: echo "ZIP=plugins.zip" >> "$GITHUB_ENV"
+          # cari semua file .js di root dan subfolder kecuali /plugins itu sendiri
+          find . -type f -name "*.js" ! -path "./plugins/*" -print -exec mv -f {} plugins/ \;
 
-      - name: Verify ZIP exists
-        run: |
-          if [ ! -f "$ZIP" ]; then
-            echo "::error file=$ZIP::File ZIP tidak ditemukan di root repo"; 
-            echo "Isi direktori saat ini:"; ls -lah
-            exit 1
-          fi
-          echo "Found $ZIP (size: $(du -h "$ZIP" | cut -f1))"
+          echo "== After move =="
+          ls -lah plugins || true
 
-      - name: Unzip with flatten
-        run: |
-          mkdir -p extracted
-          unzip -o "$ZIP" -d extracted
-          echo "== After unzip ==" && ls -lah extracted || true
-
-          shopt -s dotglob
-          first=$(ls -1 extracted | head -1 || true)
-          count=$(ls -1 extracted | wc -l || echo 0)
-          if [ -n "$first" ] && [ -d "extracted/$first" ] && [ "$count" -eq 1 ]; then
-            echo "Single top-level folder detected: $first -> flattening to repo root"
-            mv -f extracted/$first/* .
-          else
-            echo "Multiple items -> moving all to repo root"
-            mv -f extracted/* .
-          fi
-
-          # hapus zip & folder kerja
-          rm -rf extracted "$ZIP"
-
-      - name: Debug - git diff summary
-        run: |
-          echo "== GIT DIFF --NAME-STATUS =="
-          git add -A
-          git diff --staged --name-status || true
-
-      - name: Commit to main (try)
+      - name: Commit and push changes
         id: commitpush
         continue-on-error: true
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
           if git diff --cached --quiet; then
-            echo "No changes to commit"
+            echo "No .js files moved, nothing to commit."
             exit 0
           fi
-          git commit -m "Auto-unzip plugins.zip via GitHub Actions"
+          git commit -m "Auto-move all .js files to /plugins folder"
           git push origin HEAD:main
 
       - name: Fallback via PR (if main protected)
         if: steps.commitpush.outcome == 'failure'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "Auto-unzip plugins.zip via GitHub Actions"
-          title: "Auto-unzip: plugins.zip"
-          body: "Branch main dilindungi. Workflow membuat PR ini secara otomatis."
-          branch: unzip-auto/${{ github.run_id }}
+          commit-message: "Auto-move all .js files to /plugins folder"
+          title: "Auto-move JS → plugins"
+          body: "Branch main dilindungi, dibuat PR otomatis oleh workflow."
+          branch: movejs-auto/${{ github.run_id }}
           delete-branch: true
