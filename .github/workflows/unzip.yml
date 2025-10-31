@@ -3,7 +3,7 @@ name: Extract ZIP to repo
 on:
   push:
     paths:
-      - 'Azbry-MD-main.zip'      # otomatis kalau ZIP ini berubah
+      - 'plugins.zip'      # otomatis kalau ZIP ini berubah
   workflow_dispatch:             # bisa run manual
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
           git lfs pull || true
 
       - name: Set ZIP path
-        run: echo "ZIP=Azbry-MD-main.zip" >> "$GITHUB_ENV"
+        run: echo "ZIP=plugins.zip" >> "$GITHUB_ENV"
 
       - name: Verify ZIP exists
         run: |
@@ -85,15 +85,15 @@ jobs:
             echo "No changes to commit"
             exit 0
           fi
-          git commit -m "Auto-unzip Azbry-MD-main.zip via GitHub Actions"
+          git commit -m "Auto-unzip plugins.zip via GitHub Actions"
           git push origin HEAD:main
 
       - name: Fallback via PR (if main protected)
         if: steps.commitpush.outcome == 'failure'
         uses: peter-evans/create-pull-request@v6
         with:
-          commit-message: "Auto-unzip Azbry-MD-main.zip via GitHub Actions"
-          title: "Auto-unzip: Azbry-MD-main.zip"
+          commit-message: "Auto-unzip plugins.zip via GitHub Actions"
+          title: "Auto-unzip: plugins.zip"
           body: "Branch main dilindungi. Workflow membuat PR ini secara otomatis."
           branch: unzip-auto/${{ github.run_id }}
           delete-branch: true
