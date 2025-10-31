@@ -13,7 +13,7 @@ Bot WhatsApp multi-fungsi berbasis **Baileys MD**, dikembangkan dan dikelola ole
 | Framework        | [Baileys MD](https://github.com/WhiskeySockets/Baileys) |
 | Fokus            | Smart Automation & Elegant System |
 | Pengembang       | FebryWesker |
-| Tagline          | “Bot bukan cuma alat, tapi partner digital.” |
+| Tagline          | “Siapa namanya, Dimana rumahnya” |
 | Website          | [Portofolio Azbry](https://azbry-portofolio.vercel.app) |
 
 ---
@@ -21,14 +21,10 @@ Bot WhatsApp multi-fungsi berbasis **Baileys MD**, dikembangkan dan dikelola ole
 ## ✨ Fitur Utama
 
 - 🕌 **Pengingat Sholat** — kirim jadwal dan reminder otomatis  
-- 🍽️ **Pengingat Makan** — pengingat jam makan pengguna  
-- 🧾 **Auto Report & Backup** — laporan dan backup harian otomatis  
+- 🍽️ **Pengingat Makan** — pengingat jam makan pengguna
 - 🗣️ **Filter Kata** — deteksi dan blokir kata terlarang  
-- 🎯 **Level System** — XP, rank, dan leaderboard  
-- 🧠 **Azbry System** — integrasi penuh sistem internal  
-- 🛡️ **Mode Owner** — kontrol admin dan proteksi tambahan  
-- 📁 **Auto Status** — menampilkan status sistem dan uptime  
-- 🎨 **Menu Monokrom** — tampilan clean dan elegan khas Azbry  
+- 🎯 **Level System** — XP, rank, dan leaderboard
+- 🛡️ **Say No To NSFW** — Bot anti fitur nsfw/18+
 
 ---
 
@@ -68,12 +64,12 @@ global.numberowner = '62xxxxxxxxxx'    // nomor owner (string)
 
 - Instagram: *lagi dibuat*  
 - Donasi & Dukungan: *gada gabutuh duit*  
-- Project ini dikembangkan dengan gaya khas: *Monochrome + Simple*
+- Project ini dikembangkan dengan gaya khas: *Azbry - MD*
 
 ---
 
 ## 🧠 Lisensi
-MIT License © 2025 — [FebryWesker](https://github.com/FebryWesker)
+MIT License © 2025 — [FebryWesker](https://github.com/vandebry10-star)
 
 ---
 
